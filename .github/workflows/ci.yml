@@ -87,8 +87,11 @@ jobs:
       - name: Create release with the zip attached
         env:
           GH_TOKEN: ${{ github.token }}
-        run: >-
-          gh release create "$GITHUB_REF_NAME" dist/*.zip
-          --repo "$GITHUB_REPOSITORY"
-          --title "$GITHUB_REF_NAME"
-          --generate-notes
+        # Versions below 1.0.0 and versions with a suffix (1.1.0~beta1,
+        # 1.1.0-rc1) are published as pre-releases.
+        run: |
+          case "${GITHUB_REF_NAME#v}" in
+            0.*|*~*|*-*) prerelease=--prerelease ;;
+            *) prerelease= ;;
+          esac
+          gh release create "$GITHUB_REF_NAME" dist/*.zip             --repo "$GITHUB_REPOSITORY"             --title "$GITHUB_REF_NAME"             --generate-notes             $prerelease

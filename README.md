@@ -85,4 +85,4 @@ To publish a release:
    git push origin 1.1.0
    ```
 
-GitHub Actions then runs the tests, builds the zip and creates a GitHub release named after the tag, with the zip attached and release notes generated from the commits. If the tag doesn't match the version in `addon.xml`, the run fails and no release is created.
+GitHub Actions then runs the tests, builds the zip and creates a GitHub release named after the tag, with the zip attached and release notes generated from the commits. Versions below 1.0.0 and versions with a suffix (e.g. `1.1.0~beta1`) are published as pre-releases. If the tag doesn't match the version in `addon.xml`, the run fails and no release is created.
