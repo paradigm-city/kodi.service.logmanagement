@@ -60,6 +60,11 @@ class SettingsXmlTest(unittest.TestCase):
         self.assertEqual(button.findtext('data'),
                          'NotifyAll({},{})'.format(service.ADDON_ID, service.ROTATE_MESSAGE))
 
+    def test_export_button_sends_export_message(self):
+        button = self.tree.find(".//setting[@id='export_log']")
+        self.assertEqual(button.findtext('data'),
+                         'NotifyAll({},{})'.format(service.ADDON_ID, service.EXPORT_MESSAGE))
+
 
 class LanguageFilesTest(unittest.TestCase):
     def setUp(self):

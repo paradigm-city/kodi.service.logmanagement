@@ -9,8 +9,11 @@ import xbmcvfs
 from resources.lib import rotator
 
 ADDON_ID = 'service.logmanagement'
-# Sent by the "Rotate now" settings button via NotifyAll(service.logmanagement,rotate).
+# Sent by the settings buttons via NotifyAll(service.logmanagement,<message>).
 ROTATE_MESSAGE = 'rotate'
+EXPORT_MESSAGE = 'export'
+# Dialog().browse() type for choosing a writeable folder.
+BROWSE_WRITEABLE_FOLDER = 3
 
 
 def log(message, level=xbmc.LOGINFO):
@@ -21,6 +24,13 @@ def format_size(size):
     if size < 1024 * 1024:
         return '{:.1f} KB'.format(size / 1024.0)
     return '{:.1f} MB'.format(size / (1024.0 * 1024.0))
+
+
+def join_path(folder, name):
+    """Join a folder returned by Kodi's browse dialog (local path or VFS URL) with a file name."""
+    if folder.endswith(('/', '\\')):
+        return folder + name
+    return folder + ('\\' if '\\' in folder and '://' not in folder else '/') + name
 
 
 class Settings(object):
@@ -42,6 +52,7 @@ class LogRotationService(xbmc.Monitor):
         self.log_path = os.path.join(xbmcvfs.translatePath('special://logpath'), 'kodi.log')
         self.settings = Settings()
         self.rotate_requested = False
+        self.export_requested = False
         # Kodi starts a fresh kodi.log on every launch, so the log's age is
         # measured from service start or the last rotation.
         self.last_rotation = time.time()
@@ -50,18 +61,28 @@ class LogRotationService(xbmc.Monitor):
         self.settings = Settings()
 
     def onNotification(self, sender, method, data):
-        if sender == ADDON_ID and method.split('.')[-1] == ROTATE_MESSAGE:
+        if sender != ADDON_ID:
+            return
+        message = method.split('.')[-1]
+        if message == ROTATE_MESSAGE:
             self.rotate_requested = True
+        elif message == EXPORT_MESSAGE:
+            self.export_requested = True
 
     def run(self):
         log('Started, managing {}'.format(self.log_path))
         next_check = 0
-        # Wake every second so "Rotate now" is handled promptly; the actual
-        # size/age check only runs every check_interval.
+        # Wake every second so the settings buttons are handled promptly; the
+        # actual size/age check only runs every check_interval. Everything runs
+        # on this thread, so a rotation can't change the archives mid-export.
         while not self.waitForAbort(1):
             if self.rotate_requested:
                 self.rotate_requested = False
                 self.rotate('manual', manual=True)
+                continue
+            if self.export_requested:
+                self.export_requested = False
+                self.export()
                 continue
             now = time.time()
             if self.settings.enabled and now >= next_check:
@@ -105,6 +126,38 @@ class LogRotationService(xbmc.Monitor):
             reason, format_size(size), archive, xbmc.getInfoLabel('System.BuildVersion')))
         if manual or settings.notify:
             self.notify(self.addon.getLocalizedString(30200).format(archive))
+
+    def export(self):
+        """Ask for a folder and save the current session's complete log there as one file."""
+        folder = xbmcgui.Dialog().browse(
+            BROWSE_WRITEABLE_FOLDER, self.addon.getLocalizedString(30210), 'files')
+        if not folder:
+            return
+        target = join_path(folder, 'kodi-{}.log'.format(time.strftime('%Y%m%d-%H%M%S')))
+        try:
+            size, parts, complete = self._write_session(target)
+        except Exception as error:
+            log('Export to {} failed: {}'.format(target, error), xbmc.LOGERROR)
+            xbmcvfs.delete(target)
+            self.notify(self.addon.getLocalizedString(30213), xbmcgui.NOTIFICATION_ERROR)
+            return
+
+        log('Exported session log ({}, {} part(s){}) to {}'.format(
+            format_size(size), parts, '' if complete else ', start of session not found', target))
+        if complete:
+            self.notify(self.addon.getLocalizedString(30211).format(target))
+        else:
+            self.notify(self.addon.getLocalizedString(30212), xbmcgui.NOTIFICATION_WARNING)
+
+    def _write_session(self, target):
+        output = xbmcvfs.File(target, 'w')
+        try:
+            def write(chunk):
+                if not output.write(bytearray(chunk)):
+                    raise IOError('could not write to {}'.format(target))
+            return rotator.export_session(self.log_path, write)
+        finally:
+            output.close()
 
     def notify(self, message, icon=xbmcgui.NOTIFICATION_INFO):
         xbmcgui.Dialog().notification(self.addon.getAddonInfo('name'), message, icon, 4000, False)

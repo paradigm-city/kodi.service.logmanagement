@@ -179,11 +179,103 @@ class RotateTest(ServiceTestCase):
         self.assertEqual(svc.last_rotation, started)
 
 
+class ExportTest(ServiceTestCase):
+    def setUp(self):
+        super(ExportTest, self).setUp()
+        self.export_dir = os.path.join(self.tmp.name, 'export')
+        os.mkdir(self.export_dir)
+        # A session with two rotations and some current log.
+        self.session = support.KODI_LOG_HEADER + b'part 1\n'
+        with open(self.log_path, 'wb') as f:
+            f.write(self.session)
+        rotator.rotate(self.log_path, keep=1, compress=True)
+        with open(self.log_path, 'ab') as f:
+            f.write(b'part 2\n')
+        rotator.rotate(self.log_path, keep=1, compress=False)
+        with open(self.log_path, 'ab') as f:
+            f.write(b'current\n')
+        self.session += b'part 2\ncurrent\n'
+
+    def exported_files(self):
+        return [os.path.join(self.export_dir, name) for name in os.listdir(self.export_dir)]
+
+    def test_exports_complete_session_to_chosen_folder(self):
+        xbmcgui.browse_results.append(self.export_dir + os.sep)
+        service.LogRotationService().export()
+
+        self.assertEqual(xbmcgui.browse_calls,
+                         [(service.BROWSE_WRITEABLE_FOLDER, 'Choose export folder', 'files')])
+        [exported] = self.exported_files()
+        self.assertRegex(os.path.basename(exported), r'^kodi-\d{8}-\d{6}\.log$')
+        with open(exported, 'rb') as f:
+            self.assertEqual(f.read(), self.session)
+        self.assertEqual(xbmcgui.notifications[0][1], 'Log exported to ' + exported)
+        self.assertIn('3 part(s)', self.logged(xbmc.LOGINFO)[-1])
+
+    def test_folder_without_trailing_separator(self):
+        xbmcgui.browse_results.append(self.export_dir)
+        service.LogRotationService().export()
+        self.assertEqual(len(self.exported_files()), 1)
+
+    def test_cancelled_folder_selection(self):
+        service.LogRotationService().export()
+        self.assertEqual(self.exported_files(), [])
+        self.assertEqual(xbmcgui.notifications, [])
+
+    def test_incomplete_session_is_exported_with_warning(self):
+        os.remove(rotator.archive_path(self.log_path, 2, True))
+        xbmcgui.browse_results.append(self.export_dir)
+        service.LogRotationService().export()
+        self.assertEqual(len(self.exported_files()), 1)
+        self.assertEqual(xbmcgui.notifications[0][2], xbmcgui.NOTIFICATION_WARNING)
+
+    def test_write_failure_removes_partial_file(self):
+        xbmcvfs.fail_after_bytes[0] = 10
+        xbmcgui.browse_results.append(self.export_dir)
+        service.LogRotationService().export()
+        self.assertEqual(self.exported_files(), [])
+        self.assertEqual(xbmcgui.notifications[0][1], 'Log export failed, see kodi.log')
+        self.assertEqual(len(self.logged(xbmc.LOGERROR)), 1)
+
+    def test_export_request_is_handled_by_run_loop(self):
+        xbmcgui.browse_results.append(self.export_dir)
+        svc = service.LogRotationService()
+
+        def on_tick(i):
+            if i == 0:
+                svc.onNotification('service.logmanagement', 'Other.export', 'null')
+
+        self.drive(svc, 2, on_tick)
+        self.assertEqual(len(self.exported_files()), 1)
+        self.assertFalse(svc.export_requested)
+
+
+class JoinPathTest(unittest.TestCase):
+    def test_join_path(self):
+        cases = [
+            ('D:\\Logs\\', 'D:\\Logs\\kodi.log'),
+            ('D:\\Logs', 'D:\\Logs\\kodi.log'),
+            ('/storage/logs/', '/storage/logs/kodi.log'),
+            ('/storage/logs', '/storage/logs/kodi.log'),
+            ('smb://nas/share/', 'smb://nas/share/kodi.log'),
+            ('smb://nas/share', 'smb://nas/share/kodi.log'),
+        ]
+        for folder, expected in cases:
+            self.assertEqual(service.join_path(folder, 'kodi.log'), expected)
+
+
 class NotificationTest(ServiceTestCase):
     def test_rotate_request(self):
         svc = service.LogRotationService()
         svc.onNotification('service.logmanagement', 'Other.rotate', 'null')
         self.assertTrue(svc.rotate_requested)
+        self.assertFalse(svc.export_requested)
+
+    def test_export_request(self):
+        svc = service.LogRotationService()
+        svc.onNotification('service.logmanagement', 'Other.export', 'null')
+        self.assertTrue(svc.export_requested)
+        self.assertFalse(svc.rotate_requested)
 
     def test_unrelated_notifications_are_ignored(self):
         svc = service.LogRotationService()

@@ -60,8 +60,8 @@ msgid "Number of archives to keep"
 msgstr "Anzahl aufzubewahrender Archive"
 
 msgctxt "#30012"
-msgid "Rotated logs are named kodi.1.log (newest) to kodi.N.log (oldest). Older ones are deleted."
-msgstr "Rotierte Logs heißen kodi.1.log (neuestes) bis kodi.N.log (ältestes). Ältere werden gelöscht."
+msgid "Rotated logs are named kodi.1.log (newest) to kodi.N.log (oldest). Older ones are deleted, except those needed to restore the log of the current Kodi session."
+msgstr "Rotierte Logs heißen kodi.1.log (neuestes) bis kodi.N.log (ältestes). Ältere werden gelöscht, außer denen, die zum Wiederherstellen des Logs der aktuellen Kodi-Sitzung nötig sind."
 
 msgctxt "#30013"
 msgid "Compress archives"
@@ -91,6 +91,14 @@ msgctxt "#30024"
 msgid "Rotate the log immediately."
 msgstr "Das Log sofort rotieren."
 
+msgctxt "#30025"
+msgid "Export log"
+msgstr "Log exportieren"
+
+msgctxt "#30026"
+msgid "Save the complete log of the current Kodi session (archived parts plus current log) as one file, e.g. for support requests. The folder is chosen when exporting."
+msgstr "Das vollständige Log der aktuellen Kodi-Sitzung (archivierte Teile plus aktuelles Log) als eine Datei speichern, z. B. für Support-Anfragen. Der Ordner wird beim Exportieren gewählt."
+
 msgctxt "#30100"
 msgid "{0:d} MB"
 msgstr "{0:d} MB"
@@ -118,3 +126,19 @@ msgstr "Log-Rotation fehlgeschlagen, siehe kodi.log"
 msgctxt "#30202"
 msgid "Log is empty, nothing to rotate"
 msgstr "Log ist leer, nichts zu rotieren"
+
+msgctxt "#30210"
+msgid "Choose export folder"
+msgstr "Exportordner wählen"
+
+msgctxt "#30211"
+msgid "Log exported to {0}"
+msgstr "Log exportiert nach {0}"
+
+msgctxt "#30212"
+msgid "Log exported, but the start of the session was not found. It may be incomplete."
+msgstr "Log exportiert, aber der Beginn der Sitzung wurde nicht gefunden. Es ist möglicherweise unvollständig."
+
+msgctxt "#30213"
+msgid "Log export failed, see kodi.log"
+msgstr "Log-Export fehlgeschlagen, siehe kodi.log"

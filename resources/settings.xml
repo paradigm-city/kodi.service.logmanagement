@@ -89,6 +89,16 @@
                         <close>true</close>
                     </control>
                 </setting>
+                <setting id="export_log" type="action" label="30025" help="30026">
+                    <level>0</level>
+                    <data>NotifyAll(service.logmanagement,export)</data>
+                    <constraints>
+                        <allowempty>true</allowempty>
+                    </constraints>
+                    <control type="button" format="action">
+                        <close>true</close>
+                    </control>
+                </setting>
             </group>
         </category>
     </section>
