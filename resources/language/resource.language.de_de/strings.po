@@ -99,6 +99,18 @@ msgctxt "#30026"
 msgid "Save the complete log of the current Kodi session (archived parts plus current log) as one file, e.g. for support requests. The folder is chosen when exporting."
 msgstr "Das vollständige Log der aktuellen Kodi-Sitzung (archivierte Teile plus aktuelles Log) als eine Datei speichern, z. B. für Support-Anfragen. Der Ordner wird beim Exportieren gewählt."
 
+msgctxt "#30030"
+msgid "Support"
+msgstr "Support"
+
+msgctxt "#30031"
+msgid "Suspend rotation until Kodi restarts"
+msgstr "Rotation bis zum Kodi-Neustart aussetzen"
+
+msgctxt "#30032"
+msgid "Keep kodi.log in one piece for the rest of this Kodi session, e.g. to produce a classic debug log for a support request. Ends automatically when Kodi restarts."
+msgstr "kodi.log für den Rest dieser Kodi-Sitzung am Stück lassen, z. B. um ein klassisches Debug-Log für eine Support-Anfrage zu erzeugen. Endet automatisch beim Neustart von Kodi."
+
 msgctxt "#30100"
 msgid "{0:d} MB"
 msgstr "{0:d} MB"
@@ -142,3 +154,15 @@ msgstr "Log exportiert, aber der Beginn der Sitzung wurde nicht gefunden. Es ist
 msgctxt "#30213"
 msgid "Log export failed, see kodi.log"
 msgstr "Log-Export fehlgeschlagen, siehe kodi.log"
+
+msgctxt "#30220"
+msgid "Rotation suspended until Kodi restarts"
+msgstr "Rotation bis zum Kodi-Neustart ausgesetzt"
+
+msgctxt "#30221"
+msgid "Rotation suspended, but kodi.log no longer contains the start of this session. Use Export log for the complete log."
+msgstr "Rotation ausgesetzt, aber kodi.log enthält den Beginn dieser Sitzung nicht mehr. Für das vollständige Log „Log exportieren“ verwenden."
+
+msgctxt "#30222"
+msgid "Rotation resumed"
+msgstr "Rotation fortgesetzt"

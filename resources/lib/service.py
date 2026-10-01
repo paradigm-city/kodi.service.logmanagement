@@ -14,6 +14,10 @@ ROTATE_MESSAGE = 'rotate'
 EXPORT_MESSAGE = 'export'
 # Dialog().browse() type for choosing a writeable folder.
 BROWSE_WRITEABLE_FOLDER = 3
+# Home window properties live until Kodi exits, so this marks the current Kodi
+# session. A service restart within the session (e.g. add-on update) finds it set.
+HOME_WINDOW = 10000
+SESSION_PROPERTY = ADDON_ID + '.session'
 
 
 def log(message, level=xbmc.LOGINFO):
@@ -43,6 +47,7 @@ class Settings(object):
         self.keep = max(1, addon.getSettingInt('keep'))
         self.compress = addon.getSettingBool('compress')
         self.notify = addon.getSettingBool('notify')
+        self.suspended = addon.getSettingBool('suspended')
 
 
 class LogRotationService(xbmc.Monitor):
@@ -50,6 +55,7 @@ class LogRotationService(xbmc.Monitor):
         super(LogRotationService, self).__init__()
         self.addon = xbmcaddon.Addon(ADDON_ID)
         self.log_path = os.path.join(xbmcvfs.translatePath('special://logpath'), 'kodi.log')
+        self.end_suspension_from_last_session()
         self.settings = Settings()
         self.rotate_requested = False
         self.export_requested = False
@@ -57,8 +63,35 @@ class LogRotationService(xbmc.Monitor):
         # measured from service start or the last rotation.
         self.last_rotation = time.time()
 
+    def end_suspension_from_last_session(self):
+        home = xbmcgui.Window(HOME_WINDOW)
+        if home.getProperty(SESSION_PROPERTY):
+            return
+        home.setProperty(SESSION_PROPERTY, 'started')
+        if self.addon.getSettingBool('suspended'):
+            self.addon.setSettingBool('suspended', False)
+            log('Rotation suspended in the last Kodi session, resumed')
+
     def onSettingsChanged(self):
+        was_suspended = self.settings.suspended
         self.settings = Settings()
+        if self.settings.suspended and not was_suspended:
+            self.on_suspended()
+        elif was_suspended and not self.settings.suspended:
+            log('Rotation resumed')
+            self.notify(self.addon.getLocalizedString(30222))
+
+    def on_suspended(self):
+        try:
+            classic = rotator.starts_session(self.log_path)
+        except OSError:
+            classic = False
+        log('Rotation suspended until Kodi restarts{}'.format(
+            '' if classic else '; kodi.log no longer contains the start of this session'))
+        if classic:
+            self.notify(self.addon.getLocalizedString(30220))
+        else:
+            self.notify(self.addon.getLocalizedString(30221), xbmcgui.NOTIFICATION_WARNING)
 
     def onNotification(self, sender, method, data):
         if sender != ADDON_ID:
@@ -70,7 +103,8 @@ class LogRotationService(xbmc.Monitor):
             self.export_requested = True
 
     def run(self):
-        log('Started, managing {}'.format(self.log_path))
+        log('Started, managing {}{}'.format(
+            self.log_path, ' (rotation suspended until Kodi restarts)' if self.settings.suspended else ''))
         next_check = 0
         # Wake every second so the settings buttons are handled promptly; the
         # actual size/age check only runs every check_interval. Everything runs
@@ -78,14 +112,17 @@ class LogRotationService(xbmc.Monitor):
         while not self.waitForAbort(1):
             if self.rotate_requested:
                 self.rotate_requested = False
-                self.rotate('manual', manual=True)
+                if self.settings.suspended:
+                    self.notify(self.addon.getLocalizedString(30220))
+                else:
+                    self.rotate('manual', manual=True)
                 continue
             if self.export_requested:
                 self.export_requested = False
                 self.export()
                 continue
             now = time.time()
-            if self.settings.enabled and now >= next_check:
+            if self.settings.enabled and not self.settings.suspended and now >= next_check:
                 next_check = now + self.settings.check_interval
                 reason = self.rotation_reason()
                 if reason:

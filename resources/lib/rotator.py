@@ -65,7 +65,7 @@ def rotate(log_path, keep, compress):
 
     # If the session started before this part, the archives back to its start
     # must survive. After renumbering they occupy indexes 2..needed + 1.
-    needed = 0 if _starts_session(staging) else len(_session_chain(log_path)[0])
+    needed = 0 if starts_session(staging) else len(_session_chain(log_path)[0])
 
     if compress:
         _gzip(staging, staging + '.gz', os.path.basename(archive_path(log_path, 1, False)))
@@ -85,7 +85,7 @@ def session_parts(log_path):
     started is missing (e.g. an archive was deleted by hand); all contiguous
     archives are returned then.
     """
-    if _starts_session(log_path):
+    if starts_session(log_path):
         return [log_path], True
     chain, complete = _session_chain(log_path)
     return [path for _, path in reversed(chain)] + [log_path], complete
@@ -106,6 +106,19 @@ def export_session(log_path, write):
     return total, len(parts), complete
 
 
+def starts_session(path):
+    """Return True if the log part at `path` is the first part of a Kodi session."""
+    try:
+        with _open_part(path) as part:
+            return bool(_SESSION_START.search(part.read(_SESSION_START_SEARCH_SIZE)))
+    except (OSError, EOFError):
+        # A damaged archive can't be checked; treating it as a middle part
+        # errs on the side of keeping archives.
+        if not os.path.exists(path):
+            raise
+        return False
+
+
 def _session_chain(log_path):
     """Return (archives, found) for the archives holding earlier parts of the session.
 
@@ -120,22 +133,10 @@ def _session_chain(log_path):
     index = 1
     while index in by_index:
         chain.append((index, by_index[index]))
-        if _starts_session(by_index[index]):
+        if starts_session(by_index[index]):
             return chain, True
         index += 1
     return chain, False
-
-
-def _starts_session(path):
-    try:
-        with _open_part(path) as part:
-            return bool(_SESSION_START.search(part.read(_SESSION_START_SEARCH_SIZE)))
-    except (OSError, EOFError):
-        # A damaged archive can't be checked; treating it as a middle part
-        # errs on the side of keeping archives.
-        if not os.path.exists(path):
-            raise
-        return False
 
 
 def _open_part(path):

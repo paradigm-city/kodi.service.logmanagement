@@ -6,6 +6,8 @@ When the log reaches the configured size or age, its contents go to `kodi.1.log`
 
 The **Export log** button saves the complete log of the current Kodi session as one file, e.g. for a support request. You choose the target folder when exporting; it can also be a network share or USB drive.
 
+**Suspend rotation until Kodi restarts** keeps `kodi.log` in one piece for the rest of the session, e.g. to produce a classic debug log for a support request. It ends automatically at Kodi's next start.
+
 ## How it works
 
 Kodi keeps `kodi.log` open the whole time, so the file can't be renamed. The add-on uses *copy-truncate* instead: it copies the log to a staging file, then truncates the original to zero length. Kodi writes in append mode, so its next line goes to the start of the now-empty file.
@@ -22,6 +24,14 @@ Kodi writes a `Starting Kodi (...)` header at the top of every new `kodi.log`. T
 
 When rotating, the add-on never deletes archives of the current session, even if that means keeping more than the configured number. Older sessions' archives are deleted beyond that number. If the session's first part is missing (for example, deleted by hand), all consecutive archives are kept, and the export warns that the log may be incomplete.
 
+### Suspending rotation
+
+While rotation is suspended, the add-on doesn't rotate at all, so `kodi.log` keeps growing like a log without this add-on. "Rotate now" is greyed out. "Export log" still works.
+
+Suspending doesn't undo rotations that already happened in this session. If the log was rotated before, `kodi.log` no longer starts with Kodi's startup header, and the add-on warns about this when you suspend. Use **Export log** for the complete log then. For a classic `kodi.log` from the very start, restart Kodi and suspend rotation before the first rotation (at the default 20 MB limit, that's usually plenty of time).
+
+The suspension is stored as a setting and turned off at Kodi's next start. The service recognizes a new Kodi session by a property on Kodi's home window, which lasts until Kodi exits. A service restart within the same session, e.g. after an add-on update, keeps the suspension.
+
 The previous session's last part is Kodi's `kodi.old.log`, which Kodi overwrites at every start; the export covers only the current session.
 
 ## Settings
@@ -36,6 +46,7 @@ The previous session's last part is Kodi's `kodi.old.log`, which Kodi overwrites
 | Compress archives | on | gzip |
 | Show notification on rotation | off | |
 | Rotate now | | Button; rotates immediately (sends `NotifyAll(service.logmanagement,rotate)`) |
+| Suspend rotation until Kodi restarts | off | Turned off automatically at Kodi's next start |
 | Export log | | Button; asks for a folder and saves the current session's complete log there as `kodi-YYYYMMDD-HHMMSS.log` (sends `NotifyAll(service.logmanagement,export)`) |
 
 The same `NotifyAll` built-ins can also be bound to a key or run from a skin.
@@ -49,7 +60,7 @@ python -m unittest discover -s tests
 The tests use only the standard library and run without Kodi:
 
 - `tests/test_rotator.py` tests rotation, retention and reassembling a session's log, including late writes behind a NUL gap and rotating while a second process keeps appending to the log.
-- `tests/test_service.py` tests the service: size and age triggers, the check interval, "Rotate now", "Export log", notifications and error handling. It runs against fake Kodi modules in `tests/fakes/`, which read their setting defaults and strings from the real `settings.xml` and `strings.po`, so a wrong setting or string id fails the tests.
+- `tests/test_service.py` tests the service: size and age triggers, the check interval, "Rotate now", "Export log", suspending rotation, notifications and error handling. It runs against fake Kodi modules in `tests/fakes/`, which read their setting defaults and strings from the real `settings.xml` and `strings.po`, so a wrong setting or string id fails the tests.
 - `tests/test_addon_files.py` checks that `addon.xml`, `settings.xml` and the language files agree with each other and with the code. It also checks that the development files are excluded from the zip.
 
 GitHub Actions runs the tests on every push and pull request (`.github/workflows/tests.yml`). It uses Python 3.8, the version bundled with Kodi 19–21 on Windows, plus current Python versions.

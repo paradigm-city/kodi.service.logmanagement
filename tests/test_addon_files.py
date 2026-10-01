@@ -59,6 +59,11 @@ class SettingsXmlTest(unittest.TestCase):
         button = self.tree.find(".//setting[@id='rotate_now']")
         self.assertEqual(button.findtext('data'),
                          'NotifyAll({},{})'.format(service.ADDON_ID, service.ROTATE_MESSAGE))
+        # The settings dialog stays open after "Rotate now".
+        self.assertEqual(button.findtext('control/close'), 'false')
+        # Greyed out while rotation is suspended.
+        dependency = button.find("dependencies/dependency[@setting='suspended']")
+        self.assertEqual((dependency.get('type'), dependency.text), ('enable', 'false'))
 
     def test_export_button_sends_export_message(self):
         button = self.tree.find(".//setting[@id='export_log']")

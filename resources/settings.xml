@@ -85,9 +85,19 @@
                     <constraints>
                         <allowempty>true</allowempty>
                     </constraints>
+                    <dependencies>
+                        <dependency type="enable" setting="suspended">false</dependency>
+                    </dependencies>
                     <control type="button" format="action">
-                        <close>true</close>
+                        <close>false</close>
                     </control>
+                </setting>
+            </group>
+            <group id="support" label="30030">
+                <setting id="suspended" type="boolean" label="30031" help="30032">
+                    <level>0</level>
+                    <default>false</default>
+                    <control type="toggle"/>
                 </setting>
                 <setting id="export_log" type="action" label="30025" help="30026">
                     <level>0</level>

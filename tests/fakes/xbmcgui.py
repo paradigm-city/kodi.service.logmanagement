@@ -10,12 +10,29 @@ notifications = []
 browse_results = []
 # (type, heading, shares) for every Dialog().browse() call.
 browse_calls = []
+# window id -> {property: value}; Kodi keeps these until it exits.
+window_properties = {}
 
 
 def reset():
     del notifications[:]
     del browse_results[:]
     del browse_calls[:]
+    window_properties.clear()
+
+
+class Window(object):
+    def __init__(self, existingWindowId=-1):
+        self._properties = window_properties.setdefault(existingWindowId, {})
+
+    def getProperty(self, key):
+        return self._properties.get(key.lower(), '')
+
+    def setProperty(self, key, value):
+        self._properties[key.lower()] = value
+
+    def clearProperty(self, key):
+        self._properties.pop(key.lower(), None)
 
 
 class Dialog(object):

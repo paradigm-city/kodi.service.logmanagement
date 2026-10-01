@@ -71,6 +71,11 @@ class Addon(object):
     def getSettingString(self, id):
         return self._get(id, str)
 
+    def setSettingBool(self, id, value):
+        self._get(id, bool)
+        settings[id] = bool(value)
+        return True
+
     def getLocalizedString(self, id):
         return STRINGS[id]
 

@@ -99,6 +99,18 @@ msgctxt "#30026"
 msgid "Save the complete log of the current Kodi session (archived parts plus current log) as one file, e.g. for support requests. The folder is chosen when exporting."
 msgstr ""
 
+msgctxt "#30030"
+msgid "Support"
+msgstr ""
+
+msgctxt "#30031"
+msgid "Suspend rotation until Kodi restarts"
+msgstr ""
+
+msgctxt "#30032"
+msgid "Keep kodi.log in one piece for the rest of this Kodi session, e.g. to produce a classic debug log for a support request. Ends automatically when Kodi restarts."
+msgstr ""
+
 msgctxt "#30100"
 msgid "{0:d} MB"
 msgstr ""
@@ -141,4 +153,16 @@ msgstr ""
 
 msgctxt "#30213"
 msgid "Log export failed, see kodi.log"
+msgstr ""
+
+msgctxt "#30220"
+msgid "Rotation suspended until Kodi restarts"
+msgstr ""
+
+msgctxt "#30221"
+msgid "Rotation suspended, but kodi.log no longer contains the start of this session. Use Export log for the complete log."
+msgstr ""
+
+msgctxt "#30222"
+msgid "Rotation resumed"
 msgstr ""

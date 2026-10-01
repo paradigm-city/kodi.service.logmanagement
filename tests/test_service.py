@@ -39,9 +39,10 @@ class ServiceTestCase(unittest.TestCase):
         patcher.start()
         self.addCleanup(patcher.stop)
 
-    def write_log(self, size):
+    def write_log(self, content):
+        """Write `content` (bytes, or a size in bytes of filler) to kodi.log."""
         with open(self.log_path, 'wb') as f:
-            f.write(b'x' * size)
+            f.write(b'x' * content if isinstance(content, int) else content)
 
     def archives(self):
         return [os.path.basename(path) for _, path in rotator.list_archives(self.log_path)]
@@ -75,6 +76,7 @@ class SettingsTest(ServiceTestCase):
         self.assertEqual(settings.keep, 5)
         self.assertTrue(settings.compress)
         self.assertFalse(settings.notify)
+        self.assertFalse(settings.suspended)
 
     def test_out_of_range_values_are_clamped(self):
         xbmcaddon.settings.update(keep=0, check_interval_min=0)
@@ -248,6 +250,93 @@ class ExportTest(ServiceTestCase):
         self.drive(svc, 2, on_tick)
         self.assertEqual(len(self.exported_files()), 1)
         self.assertFalse(svc.export_requested)
+
+
+class SuspendTest(ServiceTestCase):
+    def setUp(self):
+        super(SuspendTest, self).setUp()
+        xbmcaddon.settings['max_size_mb'] = 1
+
+    def start_kodi(self):
+        """Simulate a Kodi restart: home window properties are gone."""
+        xbmcgui.window_properties.clear()
+
+    def set_suspended(self, svc, value):
+        xbmcaddon.settings['suspended'] = value
+        svc.onSettingsChanged()
+
+    def test_suspension_ends_at_next_kodi_start(self):
+        xbmcaddon.settings['suspended'] = True
+        self.start_kodi()
+        svc = service.LogRotationService()
+        self.assertFalse(svc.settings.suspended)
+        self.assertFalse(xbmcaddon.settings['suspended'])
+        self.assertIn('resumed', self.logged()[-1])
+
+    def test_suspension_survives_service_restart_within_session(self):
+        service.LogRotationService()
+        xbmcaddon.settings['suspended'] = True
+        svc = service.LogRotationService()
+        self.assertTrue(svc.settings.suspended)
+        self.assertTrue(xbmcaddon.settings['suspended'])
+
+    def test_no_automatic_rotation_while_suspended(self):
+        self.write_log(support.KODI_LOG_HEADER + b'x' * MB)
+        svc = service.LogRotationService()
+        self.set_suspended(svc, True)
+        self.drive(svc, 3)
+        self.assertEqual(self.archives(), [])
+        self.assertIn('rotation suspended', self.logged()[-2])
+
+    def test_rotation_continues_after_resume(self):
+        self.write_log(MB)
+        svc = service.LogRotationService()
+        self.set_suspended(svc, True)
+        self.set_suspended(svc, False)
+        self.drive(svc, 1)
+        self.assertEqual(self.archives(), ['kodi.1.log.gz'])
+        self.assertEqual(xbmcgui.notifications[-1][1], 'Rotation resumed')
+
+    def test_rotate_now_is_refused_while_suspended(self):
+        self.write_log(100)
+        svc = service.LogRotationService()
+        self.set_suspended(svc, True)
+
+        def on_tick(i):
+            if i == 0:
+                svc.onNotification('service.logmanagement', 'Other.rotate', 'null')
+
+        self.drive(svc, 2, on_tick)
+        self.assertEqual(self.archives(), [])
+        self.assertEqual(xbmcgui.notifications[-1][1], 'Rotation suspended until Kodi restarts')
+
+    def test_suspending_with_classic_log(self):
+        self.write_log(support.KODI_LOG_HEADER + b'more\n')
+        svc = service.LogRotationService()
+        self.set_suspended(svc, True)
+        self.assertEqual(xbmcgui.notifications,
+                         [('Log Management', 'Rotation suspended until Kodi restarts',
+                           xbmcgui.NOTIFICATION_INFO)])
+
+    def test_suspending_after_rotation_warns_and_points_to_export(self):
+        self.write_log(support.KODI_LOG_HEADER)
+        svc = service.LogRotationService()
+        svc.rotate('test')
+        self.write_log(b'later\n')
+        self.set_suspended(svc, True)
+        heading, message, icon = xbmcgui.notifications[-1]
+        self.assertEqual(icon, xbmcgui.NOTIFICATION_WARNING)
+        self.assertIn('Export log', message)
+
+    def test_export_works_while_suspended(self):
+        self.write_log(support.KODI_LOG_HEADER)
+        export_dir = os.path.join(self.tmp.name, 'export')
+        os.mkdir(export_dir)
+        xbmcgui.browse_results.append(export_dir)
+        svc = service.LogRotationService()
+        self.set_suspended(svc, True)
+        svc.export()
+        self.assertEqual(len(os.listdir(export_dir)), 1)
 
 
 class JoinPathTest(unittest.TestCase):
