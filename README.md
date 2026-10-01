@@ -28,10 +28,16 @@ The same `NotifyAll(service.logmanagement,rotate)` built-in can also be bound to
 ## Tests
 
 ```
-python -m unittest discover tests
+python -m unittest discover -s tests
 ```
 
-The tests cover `resources/lib/rotator.py`, which does not depend on Kodi. They include rotating while a second process keeps appending to the log.
+The tests use only the standard library and run without Kodi:
+
+- `tests/test_rotator.py` tests the rotation logic, including rotating while a second process keeps appending to the log.
+- `tests/test_service.py` tests the service: size and age triggers, the check interval, "Rotate now", notifications and error handling. It runs against fake Kodi modules in `tests/fakes/`, which read their setting defaults and strings from the real `settings.xml` and `strings.po`, so a wrong setting or string id fails the tests.
+- `tests/test_addon_files.py` checks that `addon.xml`, `settings.xml` and the language files agree with each other and with the code. It also checks that the development files are excluded from the zip.
+
+GitHub Actions runs the tests on every push and pull request (`.github/workflows/tests.yml`). It uses Python 3.8, the version bundled with Kodi 19–21 on Windows, plus current Python versions.
 
 ## Packaging
 
@@ -41,4 +47,4 @@ Build an installable zip from a commit:
 git archive --format=zip --prefix=service.logmanagement/ -o service.logmanagement-1.0.0.zip HEAD
 ```
 
-The `.gitattributes` file leaves `tests/`, `.gitignore` and `.gitattributes` out of the zip. Only committed files are included.
+The `.gitattributes` file leaves `tests/`, `.github/`, `.gitignore` and `.gitattributes` out of the zip. Only committed files are included.

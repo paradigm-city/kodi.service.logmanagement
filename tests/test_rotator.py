@@ -1,4 +1,4 @@
-"""Tests for resources/lib/rotator.py. Run with: python -m unittest discover tests"""
+"""Tests for resources/lib/rotator.py."""
 
 import gzip
 import os
@@ -8,9 +8,9 @@ import tempfile
 import time
 import unittest
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
+import support  # noqa: F401  (makes the add-on importable)
 
-from resources.lib import rotator  # noqa: E402
+from resources.lib import rotator
 
 # Mimics Kodi: keeps the log open in append mode and writes numbered lines.
 WRITER = r'''
