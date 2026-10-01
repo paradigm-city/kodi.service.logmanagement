@@ -1,0 +1,120 @@
+# Kodi Media Center language file
+# Addon Name: Log Management
+# Addon id: service.logmanagement
+# Addon Provider: paradigm_city
+msgid ""
+msgstr ""
+"Project-Id-Version: service.logmanagement\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: en_GB\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "General"
+msgstr ""
+
+msgctxt "#30001"
+msgid "Rotation"
+msgstr ""
+
+msgctxt "#30002"
+msgid "Rotate automatically"
+msgstr ""
+
+msgctxt "#30003"
+msgid "Rotate kodi.log automatically when it exceeds the size or age limit."
+msgstr ""
+
+msgctxt "#30004"
+msgid "Maximum log size"
+msgstr ""
+
+msgctxt "#30005"
+msgid "Rotate the log once it reaches this size."
+msgstr ""
+
+msgctxt "#30006"
+msgid "Maximum log age"
+msgstr ""
+
+msgctxt "#30007"
+msgid "Rotate the log after this many hours, counted from Kodi start or the last rotation."
+msgstr ""
+
+msgctxt "#30008"
+msgid "Check interval"
+msgstr ""
+
+msgctxt "#30009"
+msgid "How often the log size and age are checked."
+msgstr ""
+
+msgctxt "#30010"
+msgid "Archives"
+msgstr ""
+
+msgctxt "#30011"
+msgid "Number of archives to keep"
+msgstr ""
+
+msgctxt "#30012"
+msgid "Rotated logs are named kodi.1.log (newest) to kodi.N.log (oldest). Older ones are deleted."
+msgstr ""
+
+msgctxt "#30013"
+msgid "Compress archives"
+msgstr ""
+
+msgctxt "#30014"
+msgid "Store rotated logs gzip-compressed (kodi.1.log.gz)."
+msgstr ""
+
+msgctxt "#30020"
+msgid "Miscellaneous"
+msgstr ""
+
+msgctxt "#30021"
+msgid "Show notification on rotation"
+msgstr ""
+
+msgctxt "#30022"
+msgid "Show a notification whenever the log is rotated automatically."
+msgstr ""
+
+msgctxt "#30023"
+msgid "Rotate now"
+msgstr ""
+
+msgctxt "#30024"
+msgid "Rotate the log immediately."
+msgstr ""
+
+msgctxt "#30100"
+msgid "{0:d} MB"
+msgstr ""
+
+msgctxt "#30101"
+msgid "{0:d} h"
+msgstr ""
+
+msgctxt "#30102"
+msgid "{0:d} min"
+msgstr ""
+
+msgctxt "#30103"
+msgid "Disabled"
+msgstr ""
+
+msgctxt "#30200"
+msgid "Log rotated to {0}"
+msgstr ""
+
+msgctxt "#30201"
+msgid "Log rotation failed, see kodi.log"
+msgstr ""
+
+msgctxt "#30202"
+msgid "Log is empty, nothing to rotate"
+msgstr ""

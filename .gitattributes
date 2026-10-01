@@ -1,0 +1,4 @@
+# Excluded from "git archive" so they are not shipped in the add-on zip.
+/tests export-ignore
+/.gitattributes export-ignore
+/.gitignore export-ignore

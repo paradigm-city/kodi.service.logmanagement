@@ -1,0 +1,120 @@
+# Kodi Media Center language file
+# Addon Name: Log Management
+# Addon id: service.logmanagement
+# Addon Provider: paradigm_city
+msgid ""
+msgstr ""
+"Project-Id-Version: service.logmanagement\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Language: de_DE\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgctxt "#30000"
+msgid "General"
+msgstr "Allgemein"
+
+msgctxt "#30001"
+msgid "Rotation"
+msgstr "Rotation"
+
+msgctxt "#30002"
+msgid "Rotate automatically"
+msgstr "Automatisch rotieren"
+
+msgctxt "#30003"
+msgid "Rotate kodi.log automatically when it exceeds the size or age limit."
+msgstr "kodi.log automatisch rotieren, wenn die Größen- oder Altersgrenze überschritten wird."
+
+msgctxt "#30004"
+msgid "Maximum log size"
+msgstr "Maximale Loggröße"
+
+msgctxt "#30005"
+msgid "Rotate the log once it reaches this size."
+msgstr "Das Log rotieren, sobald es diese Größe erreicht."
+
+msgctxt "#30006"
+msgid "Maximum log age"
+msgstr "Maximales Logalter"
+
+msgctxt "#30007"
+msgid "Rotate the log after this many hours, counted from Kodi start or the last rotation."
+msgstr "Das Log nach so vielen Stunden rotieren, gezählt ab Kodi-Start oder der letzten Rotation."
+
+msgctxt "#30008"
+msgid "Check interval"
+msgstr "Prüfintervall"
+
+msgctxt "#30009"
+msgid "How often the log size and age are checked."
+msgstr "Wie oft Größe und Alter des Logs geprüft werden."
+
+msgctxt "#30010"
+msgid "Archives"
+msgstr "Archive"
+
+msgctxt "#30011"
+msgid "Number of archives to keep"
+msgstr "Anzahl aufzubewahrender Archive"
+
+msgctxt "#30012"
+msgid "Rotated logs are named kodi.1.log (newest) to kodi.N.log (oldest). Older ones are deleted."
+msgstr "Rotierte Logs heißen kodi.1.log (neuestes) bis kodi.N.log (ältestes). Ältere werden gelöscht."
+
+msgctxt "#30013"
+msgid "Compress archives"
+msgstr "Archive komprimieren"
+
+msgctxt "#30014"
+msgid "Store rotated logs gzip-compressed (kodi.1.log.gz)."
+msgstr "Rotierte Logs gzip-komprimiert speichern (kodi.1.log.gz)."
+
+msgctxt "#30020"
+msgid "Miscellaneous"
+msgstr "Sonstiges"
+
+msgctxt "#30021"
+msgid "Show notification on rotation"
+msgstr "Bei Rotation benachrichtigen"
+
+msgctxt "#30022"
+msgid "Show a notification whenever the log is rotated automatically."
+msgstr "Eine Benachrichtigung anzeigen, wenn das Log automatisch rotiert wird."
+
+msgctxt "#30023"
+msgid "Rotate now"
+msgstr "Jetzt rotieren"
+
+msgctxt "#30024"
+msgid "Rotate the log immediately."
+msgstr "Das Log sofort rotieren."
+
+msgctxt "#30100"
+msgid "{0:d} MB"
+msgstr "{0:d} MB"
+
+msgctxt "#30101"
+msgid "{0:d} h"
+msgstr "{0:d} Std."
+
+msgctxt "#30102"
+msgid "{0:d} min"
+msgstr "{0:d} Min."
+
+msgctxt "#30103"
+msgid "Disabled"
+msgstr "Deaktiviert"
+
+msgctxt "#30200"
+msgid "Log rotated to {0}"
+msgstr "Log rotiert nach {0}"
+
+msgctxt "#30201"
+msgid "Log rotation failed, see kodi.log"
+msgstr "Log-Rotation fehlgeschlagen, siehe kodi.log"
+
+msgctxt "#30202"
+msgid "Log is empty, nothing to rotate"
+msgstr "Log ist leer, nichts zu rotieren"
