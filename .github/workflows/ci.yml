@@ -1,9 +1,16 @@
-name: Tests
+name: CI
 
 on:
   push:
+    branches: ['**']
+    # Pushing a version tag (1.1.0 or v1.1.0) publishes a GitHub release with
+    # the add-on zip. The tag must match the version in addon.xml.
+    tags: ['v[0-9]*', '[0-9]*']
   pull_request:
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   test:
@@ -28,3 +35,60 @@ jobs:
           python-version: ${{ matrix.python }}
       - name: Run tests
         run: python -m unittest discover -s tests -v
+
+  zip:
+    name: Build add-on zip
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Read add-on id and version from addon.xml
+        id: addon
+        run: |
+          python3 -c "import xml.etree.ElementTree as E; r = E.parse('addon.xml').getroot(); print('id=' + r.get('id')); print('version=' + r.get('version'))" >> "$GITHUB_OUTPUT"
+      - name: Check that the tag matches the addon.xml version
+        if: startsWith(github.ref, 'refs/tags/')
+        env:
+          VERSION: ${{ steps.addon.outputs.version }}
+        run: |
+          if [ "${GITHUB_REF_NAME#v}" != "$VERSION" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match addon.xml version $VERSION (expected tag $VERSION or v$VERSION)"
+            exit 1
+          fi
+      - name: Build zip
+        env:
+          ADDON_ID: ${{ steps.addon.outputs.id }}
+          VERSION: ${{ steps.addon.outputs.version }}
+        # Files marked export-ignore in .gitattributes (tests, CI) are left out.
+        run: |
+          mkdir dist
+          zip="dist/$ADDON_ID-$VERSION.zip"
+          git archive --format=zip --prefix="$ADDON_ID/" -o "$zip" HEAD
+          unzip -l "$zip"
+          unzip -l "$zip" | grep -q " $ADDON_ID/addon.xml$" || { echo "::error::addon.xml missing from $zip"; exit 1; }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: service.logmanagement
+          path: dist/*.zip
+          if-no-files-found: error
+
+  release:
+    name: Publish GitHub release
+    needs: zip
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: service.logmanagement
+          path: dist
+      - name: Create release with the zip attached
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME" dist/*.zip
+          --repo "$GITHUB_REPOSITORY"
+          --title "$GITHUB_REF_NAME"
+          --generate-notes

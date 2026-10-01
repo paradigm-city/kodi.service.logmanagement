@@ -118,7 +118,7 @@ class PackagingTest(unittest.TestCase):
         return any(line.endswith(': set') for line in result.stdout.splitlines())
 
     def test_development_files_are_excluded(self):
-        for path in ('tests/test_service.py', 'tests/fakes/xbmc.py', '.github/workflows/tests.yml',
+        for path in ('tests/test_service.py', 'tests/fakes/xbmc.py', '.github/workflows/ci.yml',
                      '.gitattributes', '.gitignore'):
             self.assertTrue(self.export_ignored(path), path)
 

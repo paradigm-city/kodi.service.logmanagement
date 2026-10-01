@@ -63,14 +63,26 @@ The tests use only the standard library and run without Kodi:
 - `tests/test_service.py` tests the service: size and age triggers, the check interval, "Rotate now", "Export log", suspending rotation, notifications and error handling. It runs against fake Kodi modules in `tests/fakes/`, which read their setting defaults and strings from the real `settings.xml` and `strings.po`, so a wrong setting or string id fails the tests.
 - `tests/test_addon_files.py` checks that `addon.xml`, `settings.xml` and the language files agree with each other and with the code. It also checks that the development files are excluded from the zip.
 
-GitHub Actions runs the tests on every push and pull request (`.github/workflows/tests.yml`). It uses Python 3.8, the version bundled with Kodi 19–21 on Windows, plus current Python versions.
+GitHub Actions runs the tests on every push and pull request (`.github/workflows/ci.yml`). It uses Python 3.8, the version bundled with Kodi 19–21 on Windows, plus current Python versions.
 
 ## Packaging
 
-Build an installable zip from a commit:
+GitHub Actions builds the zip for Kodi's **Add-ons → Install from zip file** (`.github/workflows/ci.yml`). The zip contains the add-on in a `service.logmanagement/` folder; the development files marked `export-ignore` in `.gitattributes` (`tests/`, `.github/`, `.gitignore`, `.gitattributes`) are left out.
 
-```
-git archive --format=zip --prefix=service.logmanagement/ -o service.logmanagement-1.0.0.zip HEAD
-```
+Don't install the zip with Kodi on a machine where this repository is the installed add-on folder (`addons/service.logmanagement`): Kodi would replace the folder, including the git repository.
 
-The `.gitattributes` file leaves `tests/`, `.github/`, `.gitignore` and `.gitattributes` out of the zip. Only committed files are included.
+### Builds and releases
+
+When the tests pass, GitHub Actions builds the zip on every push and pull request. Find it on the run's page under **Artifacts**. GitHub delivers artifacts zipped, so unpack the download once to get the installable `service.logmanagement-<version>.zip`.
+
+To publish a release:
+
+1. Raise the version in `addon.xml` (e.g. to `1.1.0`) and commit. Kodi only installs a zip over an existing installation as an update if its version is higher.
+2. Tag the commit with the same version, with or without a `v`, and push the tag:
+
+   ```
+   git tag 1.1.0
+   git push origin 1.1.0
+   ```
+
+GitHub Actions then runs the tests, builds the zip and creates a GitHub release named after the tag, with the zip attached and release notes generated from the commits. If the tag doesn't match the version in `addon.xml`, the run fails and no release is created.
